@@ -1,9 +1,25 @@
+import numpy as np
+
 def simulate_windows(N = 100):
     """
     :param N: Number of windwos to estimate. Default = 100
     :return: Three lists, with the top left coordinate, the width and the height of an estimated window
     """
-    pass
+    # TODO: The returns should depend on the input image. Thus, this should be a class, where the input
+    # TODO: is the image from the DataLoad class.
+    # TODO: Add Xdim, ydim as attributes in DataLoad
+    widths = [np.random.randint(low = 500, high = 3000, size = 1) for _ in range(N)]
+
+    heights = [np.random.randint(low = 300, high = 2000, size = 1) for _ in range(N)]
+
+    x_coordinate = [np.random.randint(high = 4032 - widths[i], low = 0, size = 1) for i in range(N)]
+
+    y_coordinate = [np.random.randint(high = 3024 - heights[i], low = 0, size = 1) for i in range(N)]
+
+    return widths, heights, x_coordinate, y_coordinate
+
+
+widths, heights, x, y = simulate_windows(N = 10)
 
 def does_intersect(annotation):
     """
@@ -33,9 +49,9 @@ def compute_area():
     pass
 
 
-def compute_area_overlap():
+def compute_overlap():
     """
-    Compute the area of the overlap of two rectangles.
+    Get the top left coordinate of the overlap rectangle, the width and the height.
     """
 
     pass

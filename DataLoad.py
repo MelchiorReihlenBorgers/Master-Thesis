@@ -168,6 +168,7 @@ class DataLoad(object):
 
         radian = [ self.read_txt(path=txt_paths[ i ]) for i in range(N)]
 
+
         return images, depths, radian
 
 
