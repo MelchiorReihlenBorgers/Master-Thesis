@@ -18,9 +18,9 @@ saliency2 = cv2.saliency.StaticSaliencyFineGrained_create()
 (success, saliencyMap) = saliency.computeSaliency(images[0])
 (success2, saliencyMap2) = saliency2.computeSaliency(images[0])
 
-saliencyMap = (saliencyMap2 * 255).astype("uint8")
+saliencyMap = (saliencyMap * 255).astype("uint8")
 
-threshMap = cv2.threshold(saliencyMap.astype("uint8"), 0, 255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+threshMap = cv2.threshold(saliencyMap.astype("uint8"), 0, 1,cv2.THRESH_BINARY)[1]
 
 
 plt.imshow(threshMap)
