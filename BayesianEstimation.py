@@ -1,6 +1,4 @@
-import os
 import numpy as np
-import pandas as pd
 
 def simulate_windows(N = 1):
     """
@@ -20,12 +18,6 @@ def simulate_windows(N = 1):
 
     return width, height, x_coordinate, y_coordinate
 
-
-
-if os.path.exists(os.path.join(os.getcwd(), "test_annotation.csv")):
-    annotation = pd.read_csv("test_annotation.csv",
-                             header = None,
-                             names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
 
 def does_intersect(annotation_x, annotation_y, annotation_width, annotation_height):
     """
@@ -69,45 +61,46 @@ def does_intersect(annotation_x, annotation_y, annotation_width, annotation_heig
     if (sim_above_annotation or sim_below_annotation):
         intersection = False
 
-    """
-    # In case you want to print everything
-    print("Width Simulated: {} \n Height Simulated: {} \n X Simulated: {} \n Y Simulated: {}".format(width, height, x, y))
-    print("------------------------------------------------------------------------ \n------------------------------------------------------------------------")
-    print(" Width Annotated: {} \n Height Annotated: {} \n X Annotated: {} \n Y Annotated: {}".format(annotation_width, annotation_height, annotation_x, annotation_y))
-    print("------------------------------------------------------------------------ \n------------------------------------------------------------------------")
-    print("Top Left Simulated: {} \n Bottom Right Simulated: {} \n Top Left Annotated: {} \n Bottom Right Annoted: {}".format(tl_sim, br_sim, tl_annotation, br_annotation))
-    """
-    intersection = True
+     intersection = True
 
     return intersection, width, height, x, y
 
+# Do both rectangles intersect?
+print(does_intersect(annotation_x= 1, annotation_y=10, annotation_height=10, annotation_width = 10)[0])
 
-a = does_intersect(annotation_x= 1, annotation_y=10, annotation_height=10, annotation_width = 10)
-
-def compute_area():
+def compute_area(width, height):
     """
     Compute the area of a rectangle using the top left point.
-    :return: Area of the square given
+    :return: Area of the rectangle given
     """
+    area = width*height
 
-    pass
+    return area
 
 
-def compute_overlap():
+
+
+def compute_overlap(A1, A2, B1, B2):
     """
     Get the top left coordinate of the overlap rectangle, the width and the height.
+
+    :param A1: is the top left coordinate of the first rectangle
+    :param A2: is the bottom right coordinate of the first rectangle
+    :param B1: is the top left coordinate of the second rectangle
+    :param B2: is the bottom right coordinate of the second rectangle
     """
 
-    pass
+    overlapping_area = max(0,(min(A2[1], B2[1])-max(A1[1],B1[1]))*(min(A2[0], B2[0])-max(A1[0], B1[0])))
 
-def how_much_overlap():
-    """
-    Simulate the windwos, check whether they intersect (using simulate windows and does_intersect). If they do,
-    check if they overlap by how much using the compute_area function to calculate the area of the overlapping part.
-    :return: List of doubles between 0 and 1 indicating how much the simulated window and the annotation overlap.
-    """
+    return overlapping_area
 
-    pass
+A1 = (1,3)
+A2 = (3,1)
+B1 = (2,4)
+B2 = (4,2)
+
+compute_overlap(A1, A2, B1, B2)
+
 
 
 def compute_features():
