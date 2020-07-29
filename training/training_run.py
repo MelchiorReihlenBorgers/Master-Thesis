@@ -12,10 +12,16 @@ if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThes
 
 nrow = annotations.shape[0]
 
+examples = {}
+
 for row in range(nrow):
     annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[row,"X"], annotations.loc[row,"Y"], annotations.loc[row,"width"], annotations.loc[row,"height"]
 
     positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height, K = 10000, theta = 0.4)
+
+    name = annotations.loc[row,"Image_Name"]
+
+    examples[name] = (positive_examples, negative_examples)
 
 
 # Plotting
@@ -25,3 +31,4 @@ annotation_x, annotation_y, annotation_width, annotation_height = annotations.lo
 plotting_windows("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/test_image.jpg",
                  x, y, width, height,
                  annotation_x, annotation_y, annotation_width, annotation_height)
+
