@@ -5,10 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
+from training.does_intersect import does_intersect
+from training.compute_area import compute_area
+from training.compute_overlap import compute_overlap
 
-mport os
-
-if os.path.exists(os.path.join(os.getcwd(), "test_annotation.csv")):
+if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/test_annotation.csv"):
     annotations = pd.read_csv("test_annotation.csv",
                               header = None,
                               names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
@@ -20,7 +21,7 @@ annotation_x, annotation_y, annotation_width, annotation_height = annotations.lo
 positive_examples = []
 negative_examples = []
 
-for _ in range(1000):
+for _ in range(10000):
     intersection, width, height, x, y  = does_intersect(annotation_x, annotation_y, annotation_width, annotation_height)
 
     # If they overlap, compute by how much they overlap
@@ -32,7 +33,7 @@ for _ in range(1000):
                                   annotation_x, annotation_y, annotation_width, annotation_height)
 
         # Is the overlap greater that 0.5 of the size of the sum of the annotation window and the simulated window?
-        overlap_criterion = overlap/(area_annotation + area_window) > 0.2
+        overlap_criterion = overlap/(area_annotation + area_window) > 0.4
 
         if overlap_criterion:
             positive_examples.append(np.array([width, height, x, y]))

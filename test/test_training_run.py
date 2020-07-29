@@ -1,8 +1,6 @@
-import pytest
-import os
 import numpy as np
 
-from BayesianEstimation import simulate_windows
+from training.training_run import simulate_windows
 
 def add(x,y):
     return x + y
