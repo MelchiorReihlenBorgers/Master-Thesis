@@ -11,8 +11,8 @@ if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThes
                               header = None,
                               names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
 
-mean_annotation_width = np.mean(annotations.loc[:,"width"])
-mean_annotation_height = np.mean(annotations.loc[:,"height"])
+mean_annotation_width = np.mean(annotations.loc[:,"width"]) - np.std(annotations.loc[:,"width"])
+mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotations.loc[:,"height"])
 
 
 nrow = annotations.shape[0]
@@ -24,7 +24,7 @@ for row in range(nrow):
                                                                       annotations.loc[row,"height"]
 
     positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height,
-                                                                  K = 10000, 
+                                                                  K = 10000,
                                                                   theta = 0.4,
                                                                   width_low = mean_annotation_width,
                                                                   height_low = mean_annotation_height)
