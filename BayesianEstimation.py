@@ -1,16 +1,23 @@
+import os
 import numpy as np
+import pandas as pd
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 def simulate_windows(N = 1):
     """
+    Helper function to simulate a window in an image.
     :param N: Number of windwos to estimate. Default = 1
     :return: Three lists, with the top left coordinate, the width and the height of an estimated window
     """
     # TODO: The returns should depend on the input image. Thus, this should be a class, where the input
     # TODO: is the image from the DataLoad class.
     # TODO: Add Xdim, ydim as attributes in DataLoad
-    width = np.random.randint(low = 500, high = 3000, size = 1)
+    # TODO: The window size should be based on the distribution of sizes of the annotations in the training data to make sure that the criterion is fullfilled multiple times
+    width = np.random.randint(low = 1000, high = 3000, size = 1)
 
-    height = np.random.randint(low = 300, high = 2000, size = 1)
+    height = np.random.randint(low = 600, high = 2000, size = 1)
 
     x_coordinate = np.random.randint(high = 4032 - width, low = 0, size = 1)
 
@@ -33,7 +40,8 @@ def does_intersect(annotation_x, annotation_y, annotation_width, annotation_heig
         - Ydim image
 
     :param annotation: .csv file obtained from annotating the image on makesense.ai
-    :return: List of boolean values indicating whether a window intersects with the annotated window.
+    :return:    intersection: Bool that indicates whether the two rectangles intersect
+                width, height, x, y: Width, height and xy coordinates of top left corner of the simulated rectangle
     """
 
     width, height, x, y = simulate_windows(N = 1)
@@ -61,7 +69,8 @@ def does_intersect(annotation_x, annotation_y, annotation_width, annotation_heig
     if (sim_above_annotation or sim_below_annotation):
         intersection = False
 
-     intersection = True
+
+    intersection = True
 
     return intersection, width, height, x, y
 
@@ -80,26 +89,34 @@ def compute_area(width, height):
 
 
 
-def compute_overlap(A1, A2, B1, B2):
+def compute_overlap(x1, y1, width1, height1, x2, y2, width2, height2):
     """
     Get the top left coordinate of the overlap rectangle, the width and the height.
 
-    :param A1: is the top left coordinate of the first rectangle
-    :param A2: is the bottom right coordinate of the first rectangle
-    :param B1: is the top left coordinate of the second rectangle
-    :param B2: is the bottom right coordinate of the second rectangle
+    :param x1, y1, width1, height1: xy coordinates, width and height of first rectangle
+    :param x2, y2, width2, height2: xy coordinates, width and height of second rectangle
+
+    :return: Size of the overlapping area
     """
 
-    overlapping_area = max(0,(min(A2[1], B2[1])-max(A1[1],B1[1]))*(min(A2[0], B2[0])-max(A1[0], B1[0])))
+    A1 = (x1, y1)
+    A2 = (x1 + width1, y1 + height1)
+
+    B1 = (x2, y2)
+    B2 = (x2 + width2, y2 + height2)
+
+    X = min(A2[0], B2[0]) - max(A1[0], B1[0])
+    Y = min(A2[1], B2[1]) - max(A1[1], B1[1])
+
+    overlapping_area = compute_area(X, Y)
 
     return overlapping_area
 
-A1 = (1,3)
-A2 = (3,1)
-B1 = (2,4)
-B2 = (4,2)
+x1, y1, width1, height1 = 10, 10, 2, 20
+x2, y2, width2, height2 = 11, 20, 2, 20
 
-compute_overlap(A1, A2, B1, B2)
+
+compute_overlap(x1, y1, width1, height1, x2, y2, width2, height2)
 
 
 
@@ -114,4 +131,46 @@ def compute_features():
 
 
 if __name__ == "__main__":
-    widths, heights, x, y = simulate_windows(N=10)
+    width, height, x, y = simulate_windows(N=1)
+
+    import os
+
+    if os.path.exists(os.path.join(os.getcwd(), "test_annotation.csv")):
+        annotations = pd.read_csv("test_annotation.csv",
+                                  header = None,
+                                  names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
+
+    annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[0,"X"], annotations.loc[0,"Y"], annotations.loc[0,"width"], annotations.loc[0,"height"]
+
+    for _ in range(4):
+        intersection, width, height, x, y  = does_intersect(annotation_x, annotation_y, annotation_width, annotation_height)
+
+        # If they overlap, compute by how much they overlap
+        if intersection:
+            area_annotation = compute_area(width = annotation_width, height = annotation_height)
+            area_window = compute_area(width = width, height = height)
+
+            overlap = compute_overlap(x,y,width, height,
+                                      annotation_x, annotation_y, annotation_width, annotation_height)
+
+            # Is the overlap greater that 0.5 of the size of the sum of the annotation window and the simulated window?
+            overlap_criterion = overlap/(area_annotation + area_window) > 0.5
+
+
+
+
+
+        # Plotting
+        path = os.path.join(os.getcwd(), "test_image.jpg")
+        image = plt.imread(path)
+        plt.imshow(image)
+
+        ax = plt.gca()
+        rect = Rectangle((x, y), width, height, linewidth=1, edgecolor='r', facecolor='none')
+        ground_truth = Rectangle((annotation_x, annotation_y), annotation_width, annotation_height, linewidth=1, edgecolor='g', facecolor='none')
+
+        ax.add_patch(ground_truth)
+        ax.add_patch(rect)
+
+
+
