@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 
 from training.plotting import  plotting_windows
 
@@ -10,14 +11,23 @@ if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThes
                               header = None,
                               names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
 
+mean_annotation_width = np.mean(annotations.loc[:,"width"])
+mean_annotation_height = np.mean(annotations.loc[:,"height"])
+
+
 nrow = annotations.shape[0]
 
 examples = {}
 
 for row in range(nrow):
-    annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[row,"X"], annotations.loc[row,"Y"], annotations.loc[row,"width"], annotations.loc[row,"height"]
+    annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[row,"X"], annotations.loc[row,"Y"], annotations.loc[row,"width"], \
+                                                                      annotations.loc[row,"height"]
 
-    positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height, K = 10000, theta = 0.4)
+    positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height,
+                                                                  K = 10000, 
+                                                                  theta = 0.4,
+                                                                  width_low = mean_annotation_width,
+                                                                  height_low = mean_annotation_height)
 
     name = annotations.loc[row,"Image_Name"]
 

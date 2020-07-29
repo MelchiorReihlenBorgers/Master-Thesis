@@ -4,7 +4,7 @@ from training.does_intersect import does_intersect
 from training.compute_area import compute_area
 from training.compute_overlap import compute_overlap
 
-def create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height, K, theta = 0.5):
+def create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height, K, width_low, height_low, theta = 0.5):
     """
     Function to create training sample.
 
@@ -18,7 +18,7 @@ def create_training_sample(annotation_x, annotation_y, annotation_width, annotat
 
 
     for _ in range(K):
-        intersection, width, height, x, y  = does_intersect(annotation_x, annotation_y, annotation_width, annotation_height)
+        intersection, width, height, x, y  = does_intersect(annotation_x, annotation_y, annotation_width, annotation_height, width_low = width_low, height_low= height_low)
 
         # If they overlap, compute by how much they overlap
         if intersection:

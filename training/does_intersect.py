@@ -1,7 +1,7 @@
 from training.simulate_windows import simulate_windows
 
 
-def does_intersect(annotation_x, annotation_y, annotation_width, annotation_height):
+def does_intersect(annotation_x, annotation_y, annotation_width, annotation_height, width_low, height_low):
     """
     Check whether two boxes overlap or not.
     The .csv exported from makesense.ai has the following columns:
@@ -19,7 +19,7 @@ def does_intersect(annotation_x, annotation_y, annotation_width, annotation_heig
                 width, height, x, y: Width, height and xy coordinates of top left corner of the simulated rectangle
     """
 
-    width, height, x, y = simulate_windows(N = 1)
+    width, height, x, y = simulate_windows(N = 1, width_low = width_low, height_low= height_low)
 
     # Get the top left and bottom right corner of both the annotated window and the simulated window.
     tl_sim = (x, y)
