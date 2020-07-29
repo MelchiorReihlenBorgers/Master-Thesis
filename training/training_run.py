@@ -1,45 +1,24 @@
 import os
-import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from training.does_intersect import does_intersect
-from training.compute_area import compute_area
-from training.compute_overlap import compute_overlap
+from training.create_training_sample import create_training_sample
 
 if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/test_annotation.csv"):
     annotations = pd.read_csv("test_annotation.csv",
                               header = None,
                               names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
 
-annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[0,"X"], annotations.loc[0,"Y"], annotations.loc[0,"width"], annotations.loc[0,"height"]
 
+nrow = annotations.shape[0]
 
-# Create some space to safe the positive and negative examples (i.e. windows that overlap enough and windows that do not)
-positive_examples = []
-negative_examples = []
+for row in range(nrow):
+    annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[0,"X"], annotations.loc[0,"Y"], annotations.loc[0,"width"], annotations.loc[0,"height"]
 
-for _ in range(10000):
-    intersection, width, height, x, y  = does_intersect(annotation_x, annotation_y, annotation_width, annotation_height)
+    positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height, K = 10000, theta = 0.4)
 
-    # If they overlap, compute by how much they overlap
-    if intersection:
-        area_annotation = compute_area(width = annotation_width, height = annotation_height)
-        area_window = compute_area(width = width, height = height)
-
-        overlap = compute_overlap(x,y,width, height,
-                                  annotation_x, annotation_y, annotation_width, annotation_height)
-
-        # Is the overlap greater that 0.5 of the size of the sum of the annotation window and the simulated window?
-        overlap_criterion = overlap/(area_annotation + area_window) > 0.4
-
-        if overlap_criterion:
-            positive_examples.append(np.array([width, height, x, y]))
-
-        else:
-            negative_examples.append(np.array([width, height, x, y]))
 
 
 # Plotting
