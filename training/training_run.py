@@ -6,6 +6,7 @@ import time
 
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 
 from training.plotting import  plotting_windows
 from training.create_training_sample import create_training_sample
@@ -32,7 +33,7 @@ mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotatio
 # Save the number of rows in the annotations csv file.
 # This is used in the subsequent loop to sample 100 random windows per annotation (one annotation per image so far...)
 label_dictionary, labels, positive_examples, negative_examples = create_training_sample(annotations = annotations,
-                                                                                        K = 100, theta = 0.4, width_low = mean_annotation_width, height_low = mean_annotation_height)
+                                                                                        K = 100, theta = 0.35, width_low = mean_annotation_width, height_low = mean_annotation_height)
 
 # Plotting
 # Plot one example just to show how it works.
@@ -71,7 +72,16 @@ y = data.loc[:,"label"]
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
 
 
-# Gaussian
+# Classifier
 nb = GaussianNB()
+kmeans = KNeighborsClassifier()
 
 classifier, accuracy_in_sample, accuracy_out_of_sample, pred_in_sample, pred_out_of_sample = make_classifications(nb, X_train, X_test, y_train, y_test)
+classifier, accuracy_in_sample, accuracy_out_of_sample, pred_in_sample, pred_out_of_sample = make_classifications(kmeans, X_train, X_test, y_train, y_test)
+
+
+
+import matplotlib.pyplot as plt
+
+plt.scatter(x = mean_depth, y = mean_saliency, c = labels)
+plt.show()
