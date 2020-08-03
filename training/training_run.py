@@ -7,6 +7,7 @@ import time
 from itertools import chain
 
 from training.plotting import  plotting_windows
+from training.create_training_sample import label_data
 from training.create_training_sample import create_training_sample
 from training.extract_features import extract_features
 
@@ -34,6 +35,9 @@ mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotatio
 # TODO: Increase K to 10K to make a more reasonable training sample. For now its fine for speed.
 nrow = annotations.shape[0]
 
+label_dictionary, labels = create_training_sample(annotations = annotations,
+                                                  K = 100, theta = 0.4, width_low = mean_annotation_width, height_low = mean_annotation_height)
+
 examples = {}
 labels = []
 
@@ -41,11 +45,11 @@ for row in range(nrow):
     annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[row,"X"], annotations.loc[row,"Y"], annotations.loc[row,"width"], \
                                                                       annotations.loc[row,"height"]
 
-    positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height,
-                                                                  K = 10000,
-                                                                  theta = 0.4,
-                                                                  width_low = mean_annotation_width,
-                                                                  height_low = mean_annotation_height)
+    positive_examples, negative_examples = label_data(annotation_x, annotation_y, annotation_width, annotation_height,
+                                                      K = 100,
+                                                      theta = 0.4,
+                                                      width_low = mean_annotation_width,
+                                                      height_low = mean_annotation_height)
 
     N_positives, N_negatives = len(positive_examples), len(negative_examples)
 
@@ -72,7 +76,7 @@ plotting_windows("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesi
 
 
 # Load the first 3 images to create a training set.
-# TODO: This has to be done with at least 50 images. To obtain that you need to annotate the first 50 images as well.
+# TODO: This has to be done with at least 50 images. To obtain that you need to annotate the first 50 imaaccuracy_out_of_sampleges as well.
 data = DataLoad(path="/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis")
 images, depth, radian = data.load_data(N = 50)
 
