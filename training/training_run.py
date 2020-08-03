@@ -10,7 +10,10 @@ from training.plotting import  plotting_windows
 from training.create_training_sample import create_training_sample
 from training.extract_features import extract_features
 
+from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+
 
 from DataLoad import DataLoad
 
@@ -39,7 +42,7 @@ for row in range(nrow):
                                                                       annotations.loc[row,"height"]
 
     positive_examples, negative_examples = create_training_sample(annotation_x, annotation_y, annotation_width, annotation_height,
-                                                                  K = 100,
+                                                                  K = 10000,
                                                                   theta = 0.4,
                                                                   width_low = mean_annotation_width,
                                                                   height_low = mean_annotation_height)
@@ -106,3 +109,13 @@ data["Mean_Depth"] = mean_depth
 data["label"] = labels
 
 # Implement classification.
+nb = GaussianNB()
+X = data.loc[:,["Mean_Saliency", "Mean_Depth"]]
+y = data.loc[:,"label"]
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
+
+pred_in_sample = nb.fit(X_train, y_train)
+pred_out_of_sample = nb.predict(X_test)
+
+accuracy_out_of_sample = accuracy_score(y_true = y_test, y_pred = pred_out_of_sample)
+
