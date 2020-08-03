@@ -85,4 +85,4 @@ def create_training_sample(annotations, K, width_low, height_low, theta = 0.4):
 
     labels = list(chain.from_iterable(labels))
 
-    return examples, labels
+    return examples, labels, positive_examples, negative_examples

@@ -51,14 +51,30 @@ def extract_features(depth, image, dict_entry):
 
     return mean_depth, mean_saliency
 
+def get_features(label_dictionary, depth, images):
+    image_names = list(label_dictionary.keys())
+    all_features = []
+
+    # Iterate over different images
+    for index, name in enumerate(image_names):
+
+        # Each image has positive and negative examples/windows that cover more than theta percent of the annotation and not
+        for example in range(2):
+            windows_example_list = len(label_dictionary[name][example])
+
+            # Extract the features from each of these windows and save them as a list.
+            for window in range(windows_example_list):
+                mean_depth, mean_saliency = extract_features(depth[index], images[index],
+                                                             label_dictionary[name][example][window])
+
+                features = (mean_depth, mean_saliency)
+
+                all_features.append(features)
+
+    return all_features
 
 
-if __name__ == "__main__":
-    from DataLoad import DataLoad
 
-    data = DataLoad(path="/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis")
 
-    images, depth, radian = data.load_data(N = 1)
 
-    mean_depth, mean_saliency = extract_features(depth[0], images[0], examples['585216074-0.jpg'][0][0])
 
