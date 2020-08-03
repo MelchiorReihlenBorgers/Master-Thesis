@@ -4,13 +4,15 @@ import numpy as np
 import pandas as pd
 import time
 
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+
 from training.plotting import  plotting_windows
 from training.create_training_sample import create_training_sample
 from training.extract_features import get_features
+from training.make_classifications import make_classifications
 
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score
+
 
 
 from DataLoad import DataLoad
@@ -64,14 +66,12 @@ data["Mean_Depth"] = mean_depth
 data["label"] = labels
 
 # Implement classification.
-nb = GaussianNB()
 X = data.loc[:,["Mean_Saliency", "Mean_Depth"]]
 y = data.loc[:,"label"]
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
 
-pred_in_sample = nb.fit(X_train, y_train)
-pred_out_of_sample = nb.predict(X_test)
 
-accuracy_out_of_sample = accuracy_score(y_true = y_test, y_pred = pred_out_of_sample)
+# Gaussian
+nb = GaussianNB()
 
-print("The accuracy out of sample is: {:.2f}%".format(accuracy_out_of_sample*100))
+classifier, accuracy_in_sample, accuracy_out_of_sample, pred_in_sample, pred_out_of_sample = make_classifications(nb, X_train, X_test, y_train, y_test)
