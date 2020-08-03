@@ -1,17 +1,23 @@
 import os
 import pandas as pd
 import numpy as np
+import pandas as pd
+import time
+
+from itertools import chain
 
 from training.plotting import  plotting_windows
 from training.create_training_sample import create_training_sample
 from training.extract_features import extract_features
 
+from sklearn.naive_bayes import GaussianNB
+
 from DataLoad import DataLoad
 
 
 # Load the .csv file with annotations (obtained from makesense.ai)
-if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/test_annotation.csv"):
-    annotations = pd.read_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/test_annotation.csv",
+if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/annotation.csv"):
+    annotations = pd.read_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/annotation.csv",
                               header = None,
                               names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
 
@@ -26,6 +32,7 @@ mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotatio
 nrow = annotations.shape[0]
 
 examples = {}
+labels = []
 
 for row in range(nrow):
     annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[row,"X"], annotations.loc[row,"Y"], annotations.loc[row,"width"], \
@@ -37,10 +44,19 @@ for row in range(nrow):
                                                                   width_low = mean_annotation_width,
                                                                   height_low = mean_annotation_height)
 
+    N_positives, N_negatives = len(positive_examples), len(negative_examples)
+
+    label = [1]*N_positives + [0]*N_negatives
+
+    labels.append(label)
+
+
+
     name = annotations.loc[row,"Image_Name"]
 
     examples[name] = (positive_examples, negative_examples)
 
+labels = list(chain.from_iterable(labels))
 
 # Plotting
 # Plot one example just to show how it works.
@@ -55,7 +71,7 @@ plotting_windows("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesi
 # Load the first 3 images to create a training set.
 # TODO: This has to be done with at least 50 images. To obtain that you need to annotate the first 50 images as well.
 data = DataLoad(path="/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis")
-images, depth, radian = data.load_data(N = 3)
+images, depth, radian = data.load_data(N = 50)
 
 
 # Extract the features from the samples and save them to create the input data for the algorithm.
@@ -79,7 +95,14 @@ for index, name in enumerate(image_names):
 
             all_features.append(features)
 
-# TODO: Bind all of these into one data frame.
+# Create one data frame with all features
+N = len(all_features)
+mean_depth = [all_features[i][0] for i in range(N)]
+mean_saliency = [all_features[i][1] for i in range(N)]
 
-# TODO: Get target from dict.
+data = pd.DataFrame()
+data["Mean_Saliency"] = mean_saliency
+data["Mean_Depth"] = mean_depth
+data["label"] = labels
 
+# Implement classification.
