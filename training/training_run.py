@@ -52,7 +52,7 @@ images, depth, radian = data.load_data(N = 50)
 # Extract the features from the samples and save them to create the input data for the algorithm.
 # mean_saliency, mean_depth = extract_features()
 
-all_features = get_features(label_dictionary, depth, images)
+all_features = get_features(label_dictionary, depth, images, beta = 0.1)
 
 
 
@@ -60,14 +60,19 @@ all_features = get_features(label_dictionary, depth, images)
 N = len(all_features)
 mean_depth = [all_features[i][0] for i in range(N)]
 mean_saliency = [all_features[i][1] for i in range(N)]
+color_distance = [all_features[i][2] for i in range(N)]
+edge_density = [all_features[i][3] for i in range(N)]
+
 
 data = pd.DataFrame()
 data["Mean_Saliency"] = mean_saliency
 data["Mean_Depth"] = mean_depth
+data["Color_Distance"] = color_distance
+data["Edge_Density"] = edge_density
 data["label"] = labels
 
 # Implement classification.
-X = data.loc[:,["Mean_Saliency", "Mean_Depth"]]
+X = data.loc[:,["Mean_Saliency", "Mean_Depth", "Color_Distance", "Edge_Density"]]
 y = data.loc[:,"label"]
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
 
@@ -76,6 +81,7 @@ X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
 nb = GaussianNB()
 kmeans = KNeighborsClassifier()
 
+# TODO: Write this in function or in loop at the very least
 classifier, accuracy_in_sample, accuracy_out_of_sample, pred_in_sample, pred_out_of_sample = make_classifications(nb, X_train, X_test, y_train, y_test)
 classifier, accuracy_in_sample, accuracy_out_of_sample, pred_in_sample, pred_out_of_sample = make_classifications(kmeans, X_train, X_test, y_train, y_test)
 
@@ -83,5 +89,5 @@ classifier, accuracy_in_sample, accuracy_out_of_sample, pred_in_sample, pred_out
 
 import matplotlib.pyplot as plt
 
-plt.scatter(x = mean_depth, y = mean_saliency, c = labels)
+plt.scatter(x = mean_depth, y = np.log(color_distance), c = labels)
 plt.show()
