@@ -36,3 +36,8 @@ if __name__ == "__main__":
     beta = 10
 
     expanded_image = expand_image(originial_img= image, x = x, y = y, width = widht, height = height, beta = beta)
+
+
+    x, y, widht, height = 0, 0, 2000, 1000
+    beta = -0.1
+    expanded_image = expand_image(originial_img=image, x=x, y=y, width=widht, height=height, beta=beta)
