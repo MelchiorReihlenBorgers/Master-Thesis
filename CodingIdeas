@@ -1,18 +1,2 @@
-Juli 24, 2020 
-
-
-1) Saliency Detection [Objectness to find the bounding box (main issue with two stage approaches)]
-
-2) Use pre-trained model to compare performance in terms of metrics to be defined
-    - Accuracy, speed
-
-Warum:
-	- Verkleinern des bildes um classification zu vereinfachen
-	- Aufwändiger teil ist die suche nach object candidates
-	
-Schritte Heute:
-	- Research welche algorithmen? 
-		- Wie implementiert? Github/package etc.
-
-
-	
+import sys
+sys.modules[__name__].__dict__.clear()
