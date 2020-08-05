@@ -39,7 +39,7 @@ def superpixel_straddeling(image, x, y, width, height):
     :param height: Height of simulated window
     :return: Superpixel Straddel
     """
-    superpixels = slic(image, 5)
+    superpixels = slic(image, 3)
 
     # Compute the sizes of the superpixels in the entire image
     unique_superpixels = np.unique(superpixels)
@@ -162,9 +162,9 @@ def extract_features(depth, image, dict_entry, beta=0.1):
     edge_density = np.sum(edges)/(edges.shape[0]*edges.shape[1])
 
     ## 5) Superpixel Straddeling
-    superpixel = superpixel_straddeling(image = image, width = width, height = height, x = x, y = y)
+    #superpixel = superpixel_straddeling(image = image, width = width, height = height, x = x, y = y)
 
-    return mean_depth, mean_saliency, distance_histograms, edge_density, superpixel
+    return mean_depth, mean_saliency, distance_histograms, edge_density
 
 
 
@@ -181,10 +181,10 @@ def get_features(label_dictionary, depth, images, beta):
 
             # Extract the features from each of these windows and save them as a list.
             for window in range(windows_example_list):
-                mean_depth, mean_saliency, color_distance, edge_density, superpixel = extract_features(depth[index],
-                                                                                                       images[index],
-                                                                                                       label_dictionary[name][example][window],
-                                                                                                       beta = 0.1)
+                mean_depth, mean_saliency, color_distance, edge_density = extract_features(depth[index],
+                                                                                            images[index],
+                                                                                            label_dictionary[name][example][window],
+                                                                                            beta = 0.1)
 
                 features = (mean_depth, mean_saliency, color_distance, edge_density)
 
