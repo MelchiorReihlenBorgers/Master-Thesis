@@ -1,20 +1,14 @@
 import os
-import pandas as pd
 import numpy as np
 import pandas as pd
-import time
 
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 
-from training.plotting import  plotting_windows
 from training.create_training_sample import create_training_sample
 from training.extract_features import get_features
 from training.make_classifications import make_classifications
-
-
-
 
 from DataLoad import DataLoad
 
@@ -34,17 +28,7 @@ mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotatio
 # This is used in the subsequent loop to sample 100 random windows per annotation (one annotation per image so far...)
 label_dictionary, labels, positive_examples, negative_examples = create_training_sample(annotations = annotations,
                                                                                         K = 100, theta = 0.35, width_low = mean_annotation_width, height_low = mean_annotation_height)
-
-# Plotting
-# Plot one example just to show how it works.
-x, y, width, height = positive_examples[0][2], positive_examples[0][3], positive_examples[0][0], positive_examples[0][1]
-annotation_x, annotation_y, annotation_width, annotation_height = annotations.loc[0,"X"], annotations.loc[0,"Y"], annotations.loc[0,"width"], annotations.loc[0,"height"]
-
-plotting_windows("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/test_image.jpg",
-                 x, y, width, height,
-                 annotation_x, annotation_y, annotation_width, annotation_height)
-
-
+# Load all images
 data = DataLoad(path="/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis")
 images, depth, radian = data.load_data(N = 50)
 
@@ -62,6 +46,7 @@ mean_depth = [all_features[i][0] for i in range(N)]
 mean_saliency = [all_features[i][1] for i in range(N)]
 color_distance = [all_features[i][2] for i in range(N)]
 edge_density = [all_features[i][3] for i in range(N)]
+superpixel_straddeling = [all_features[i][4] for i in range(N)]
 
 
 data = pd.DataFrame()
@@ -69,10 +54,11 @@ data["Mean_Saliency"] = mean_saliency
 data["Mean_Depth"] = mean_depth
 data["Color_Distance"] = color_distance
 data["Edge_Density"] = edge_density
+data["Superpixel_Straddling"] = superpixel_straddeling
 data["label"] = labels
 
 # Implement classification.
-X = data.loc[:,["Mean_Saliency", "Mean_Depth", "Color_Distance", "Edge_Density"]]
+X = data.loc[:,["Mean_Saliency", "Mean_Depth", "Color_Distance", "Edge_Density", "Superpixel_Straddling"]]
 y = data.loc[:,"label"]
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2)
 
