@@ -2,13 +2,10 @@ import os
 import numpy as np
 import pandas as pd
 
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
+
 
 from training.create_training_sample import create_training_sample
 from training.extract_features import get_features
-
-from training.Classification import Classification
 
 from DataLoad import DataLoad
 
@@ -26,8 +23,9 @@ mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotatio
 
 # Save the number of rows in the annotations csv file.
 # This is used in the subsequent loop to sample 100 random windows per annotation (one annotation per image so far...)
-label_dictionary, labels, positive_examples, negative_examples = create_training_sample(annotations = annotations,
-                                                                                        K = 100, theta = 0.35, width_low = mean_annotation_width, height_low = mean_annotation_height)
+label_dictionary, labels,  IoUs = create_training_sample(annotations = annotations,
+                                                         K = 100, theta = 0.35, width_low = mean_annotation_width,
+                                                         height_low = mean_annotation_height)
 # Load all images
 data = DataLoad(path="/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis")
 images, depth, radian = data.load_data(N = 50)
@@ -59,32 +57,6 @@ data["Edge_Density"] = edge_density
 # data["Superpixel_Straddling"] = superpixel_straddeling
 data["label"] = labels
 
-
-################### ----------------------- ###################
-###################    !START FROM HERE!    ###################
-################### ----------------------- ###################
-
 data.to_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/data.csv")
-
-data = pd.read_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/data.csv",
-                   header = 0)
-
-# Implement classification.
-X = data.loc[:,["Mean_Saliency", "Mean_Depth", "Color_Distance", "Edge_Density"]]
-y = data.loc[:,"label"]
-
-nb = GaussianNB()
-kmeans = KNeighborsClassifier()
-
-methods = [ nb, kmeans ]
-
-results = [ ]
-
-for method in methods:
-    classification = Classification(method=method, X=X, y=y)
-
-    result = classification.evaluation("test")
-
-    results.append(result)
 
 

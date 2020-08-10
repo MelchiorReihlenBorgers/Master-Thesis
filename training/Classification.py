@@ -1,6 +1,13 @@
 """
-Class to implement different classificatoin schemes and to make predictions.
+Class to implement different classification schemes and to make predictions.
 """
+
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import plot_precision_recall_curve
+
+
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -31,8 +38,11 @@ class Classification(object):
         """
         X_train, X_test, y_train, y_test = self.create_split()
 
-        fit = eval(self.method + ".fit(X_train, y_train)")
+        model = self.method + ".fit(X_train, y_train)"
 
+        global fit
+
+        fit = eval(model)
 
         if kind == "train":
             predict = fit.predict(X_train)
@@ -42,7 +52,7 @@ class Classification(object):
             predict = fit.predict(X_test)
             y_true = y_test
 
-        return predict, y_true
+        return predict, y_true, model
 
     def evaluation(self, kind):
         """
@@ -52,11 +62,12 @@ class Classification(object):
         """
 
         if kind == "train":
-            predict, y_true = self.predict(kind = kind)
+            predict, y_true, model = self.predict(kind = kind)
 
         else:
-            predict, y_true = self.predict(kind=kind)
+            predict, y_true, model = self.predict(kind=kind)
 
         accuracy = accuracy_score(y_true=y_true, y_pred=predict)
 
         return accuracy
+

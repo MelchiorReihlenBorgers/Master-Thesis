@@ -6,7 +6,7 @@ from training.does_intersect import does_intersect
 from training.compute_area import compute_area
 from training.compute_overlap import compute_overlap
 
-def label_data(annotation_x, annotation_y, annotation_width, annotation_height, K, width_low, height_low, theta = 0.5):
+def label_data(annotation_x, annotation_y, annotation_width, annotation_height, K, width_low, height_low, theta):
     """
     Function to create training sample.
 
@@ -17,6 +17,7 @@ def label_data(annotation_x, annotation_y, annotation_width, annotation_height, 
     # Create some space to safe the positive and negative examples (i.e. windows that overlap enough and windows that do not)
     positive_examples = []
     negative_examples = []
+    IoUs = []
 
 
     for _ in range(K):
@@ -24,22 +25,35 @@ def label_data(annotation_x, annotation_y, annotation_width, annotation_height, 
 
         # If they overlap, compute by how much they overlap
         if intersection:
-            area_annotation = compute_area(width = annotation_width, height = annotation_height)
-            area_window = compute_area(width = width, height = height)
+           area_annotation = compute_area(width = annotation_width, height = annotation_height)
+           area_window = compute_area(width = width, height = height)
 
-            overlap = compute_overlap(x,y,width, height,
+           overlap = compute_overlap(x,y,width, height,
                                       annotation_x, annotation_y, annotation_width, annotation_height)
 
-            # Is the overlap greater that 0.5 of the size of the sum of the annotation window and the simulated window?
-            overlap_criterion = overlap/(area_annotation + area_window) > theta
+           # Calculate the Intersection over Union
+           IoU = overlap / (area_annotation + area_window)
+           IoUs.append(IoU)
 
-            if overlap_criterion:
-                positive_examples.append(np.array([width, height, x, y]))
 
-            else:
-                negative_examples.append(np.array([width, height, x, y]))
+           # If the IoU is greater than theta, it is a positive example else negative
+           if IoU > theta:
+               positive_examples.append(np.array([width, height, x, y]))
 
-    return positive_examples, negative_examples
+
+           else:
+               negative_examples.append(np.array([width, height, x, y]))
+
+
+        else:
+           IoU = 0
+           IoUs.append(IoU)
+
+    return positive_examples, negative_examples, IoUs
+
+
+
+
 
 def create_training_sample(annotations, K, width_low, height_low, theta = 0.4):
     """
@@ -58,6 +72,7 @@ def create_training_sample(annotations, K, width_low, height_low, theta = 0.4):
 
     examples = {}
     labels = []
+    IoUs = []
 
     nrow = annotations.shape[0]
 
@@ -66,23 +81,62 @@ def create_training_sample(annotations, K, width_low, height_low, theta = 0.4):
             annotations.loc[ row, "X" ], annotations.loc[row, "Y" ], annotations.loc[ row, "width" ], \
             annotations.loc[ row, "height" ]
 
-        positive_examples, negative_examples = label_data(annotation_x, annotation_y, annotation_width,
+        positive_examples, negative_examples, IoU = label_data(annotation_x, annotation_y, annotation_width,
                                                           annotation_height,
                                                           K=K,
                                                           theta=theta,
                                                           width_low=width_low,
                                                           height_low=height_low)
 
+        # Get the size of the number of IoUs > theta and smaller
         N_positives, N_negatives = len(positive_examples), len(negative_examples)
 
+        # Create a list with length N_positives + N_Negatives, containing a one or a zero, without using a loop.
         label = [1] * N_positives + [0] * N_negatives
 
         labels.append(label)
+
 
         name = annotations.loc[ row, "Image_Name" ]
 
         examples[ name ] = (positive_examples, negative_examples)
 
-    labels = list(chain.from_iterable(labels))
+        IoUs.append(IoU)
 
-    return examples, labels, positive_examples, negative_examples
+    labels = list(chain.from_iterable(labels))
+    IoUs = list(chain.from_iterable(IoUs))
+
+    return examples, labels, IoUs
+
+
+"""
+import os
+import numpy as np
+import pandas as pd
+
+
+# Load the .csv file with annotations (obtained from makesense.ai)
+if os.path.exists("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/annotation.csv"):
+    annotations = pd.read_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/MasterThesis/annotation.csv",
+                              header = None,
+                              names = ["Label", "X", "Y", "width", "height", "Image_Name", "Xdim", "Ydim"])
+
+# Compute the mean annotation width and height and subtract the standard deviation once to
+# use it as a lower bound in the sampling of random windows in the image.
+mean_annotation_width = np.mean(annotations.loc[:,"width"]) - np.std(annotations.loc[:,"width"])
+mean_annotation_height = np.mean(annotations.loc[:,"height"]) - np.std(annotations.loc[:,"height"])
+
+annotation_x, annotation_y, annotation_width, annotation_height = \
+            annotations.loc[0, "X" ], annotations.loc[0, "Y" ], annotations.loc[0, "width" ], \
+            annotations.loc[0, "height" ]
+
+K = 100
+
+a,b, c = label_data(annotation_x, annotation_y, annotation_width, annotation_height, K, mean_annotation_width, mean_annotation_height, 0.3)
+
+annotation = annotations.loc[:2,:]
+
+examples, labels, positive_examples, negative_examples, IoUs = \
+    create_training_sample(annotations = annotation, K = K, width_low= mean_annotation_width, height_low= mean_annotation_height, theta = 0.3)
+"""
+
