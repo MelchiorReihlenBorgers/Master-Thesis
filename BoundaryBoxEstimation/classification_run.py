@@ -15,6 +15,10 @@ from sklearn.metrics import plot_precision_recall_curve
 
 import matplotlib.pyplot as plt
 
+## Just a bool to check whether to save results (Y) as csv or not (anything else)
+save_bool = input(str("Do you want to save the files?"))
+
+
 ####### I: Preprocessing #######
 
 # Read in the results from training_run.py
@@ -90,20 +94,25 @@ for method_name, method in methods.items():
 accuracies = pd.DataFrame(accuracies, columns = ["Train", "Test"], index = [method for method, x in methods.items()])
 precisions = pd.DataFrame(precisions, columns = ["Train", "Test"], index = [method for method, x in methods.items()])
 
-accuracies.plot(kind = "bar")
-plt.xticks(rotation = 90)
+"""
+accuracies.plot(kind = ""bar")
+plt.xticks(rotation = 0)
 plt.title("Train vs. Test Accuracy")
 plt.show()
 
 precisions.plot(kind = "bar")
-plt.xticks(rotation = 90)
+plt.xticks(rotation = 0)
 plt.title("Train vs. Test mAP")
 plt.show()
 
-
+if save_bool == "Y":
+    accuracies.to_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/Results Master Thesis/Boundary Box Estimation/With Depth/Accuracies_Depth.csv")
+    precisions.to_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/Results Master Thesis/Boundary Box Estimation/With Depth/Precisions_Depth.csv")
+"""
 ## Without Depth:
 accuracies_ND = []
 precisions_ND = []
+poos = []
 
 for method_name, method in methods.items():
     # Fit model
@@ -119,26 +128,34 @@ for method_name, method in methods.items():
     accuracy_out_of_sample_ND = accuracy_score(y_true=y_test, y_pred=prediction_out_of_sample_ND)
     maP_out_of_sample_ND = average_precision_score(y_true=y_test, y_score=prediction_out_of_sample_ND)
 
-    accuracy = (accuracy_in_sample_ND, prediction_out_of_sample_ND)
+    accuracy = (accuracy_in_sample_ND, accuracy_out_of_sample_ND)
     precision = (maP_in_sample_ND, maP_out_of_sample_ND)
 
+
+    poos.append(prediction_out_of_sample_ND)
     accuracies_ND.append(accuracy)
     precisions_ND.append(precision)
 
-accuracies_ND = pd.DataFrame(accuracies, columns = ["Train", "Test"], index = [method for method, x in methods.items()])
-precisions_ND = pd.DataFrame(precisions, columns = ["Train", "Test"], index = [method for method, x in methods.items()])
+accuracies_ND = pd.DataFrame(accuracies_ND, columns = ["Train", "Test"], index = [method for method, x in methods.items()])
+precisions_ND = pd.DataFrame(precisions_ND, columns = ["Train", "Test"], index = [method for method, x in methods.items()])
 
 accuracies_ND.plot(kind = "bar")
-plt.xticks(rotation = 90)
+plt.xticks(rotation = 0)
 plt.title("Train vs. Test Accuracy")
-plt.show()
+plt.savefig("/media/melchior/Elements/MaastrichtUniversity/BISS/Results Master Thesis/Boundary Box Estimation/Without Depth/Accuracy_NoDepth.jpg")
+#plt.show()
 
 precisions_ND.plot(kind = "bar")
-plt.xticks(rotation = 90)
+plt.xticks(rotation = 0)
 plt.title("Train vs. Test mAP")
 plt.show()
 
 
+if save_bool == "Y":
+    accuracies_ND.to_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/Results Master Thesis/Boundary Box Estimation/Without Depth/Accuracies_No_Depth.csv")
+    precisions_ND.to_csv("/media/melchior/Elements/MaastrichtUniversity/BISS/Results Master Thesis/Boundary Box Estimation/Without Depth/Precisions_No_Depth.csv")
+
+"""
 ####### III: Precision Recall Plots #######
 # Get precision of random classifier
 random_classifier = np.sum(y_test)/len(y_test)
@@ -158,3 +175,5 @@ for method_name, method in methods.items():
     plt.title("{} - PR Plot (excl. depth)".format(method_name))
     plt.axhline(random_classifier, color="red", linestyle="--")
     plt.show()
+
+"""

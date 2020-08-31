@@ -8,7 +8,7 @@ from training.compute_overlap import compute_overlap
 
 def label_data(annotation_x, annotation_y, annotation_width, annotation_height, K, width_low, height_low, theta):
     """
-    Function to create training sample.
+    Function to create BoundaryBoxEstimation sample.
 
     :param K: Number of windows simulated per image.
     :param theta: Threshold for positive image classification
@@ -32,7 +32,7 @@ def label_data(annotation_x, annotation_y, annotation_width, annotation_height, 
                                       annotation_x, annotation_y, annotation_width, annotation_height)
 
            # Calculate the Intersection over Union
-           IoU = overlap / (area_annotation + area_window)
+           IoU = overlap / (area_annotation + area_window - overlap)
            IoUs.append(IoU)
 
 

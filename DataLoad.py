@@ -90,7 +90,7 @@ class DataLoad(object):
                         - list of paths to metadata
         """
 
-        path_data = os.path.join(self.path, "images_and_depths_large/Cow_Images_T")
+        path_data = os.path.join(self.path, "Data/images_and_depths_large/Cow_Images_T")
 
         # Create all the paths.
         paths = [i for i in os.listdir(path_data)]
@@ -168,8 +168,9 @@ class DataLoad(object):
 
         radian = [ self.read_txt(path=txt_paths[ i ]) for i in range(N)]
 
-
+        print("{} Images, {} Depths and {} Radians measures were loaded".format(len(images), len(depths), len(radian)))
         return images, depths, radian
+
 
 
 if __name__ == "__main__":

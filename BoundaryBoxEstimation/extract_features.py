@@ -10,6 +10,8 @@ from training.saliency_map_estimation import saliency_map_estimation
 from training.expand_image import expand_image
 from training.compute_area import compute_area
 
+from training.euc_distance import euc_distance
+
 def canny_detector(image, sigma = 0.33):
     """
     Function to do automatic canny edge detection. Code inspired by
@@ -123,9 +125,26 @@ def extract_features(depth, image, dict_entry, beta=0.1):
     width_depth = int(width_percentage * depth.shape[1])
     height_depth = int(height_percentage * depth.shape[0])
 
+    # Expanded height and width for depth map used for Depth Contrast
+    x_depth_new = int(max(0, x_depth - 0.5*beta*width))
+    y_depth_new = int(max(0, y_depth - 0.5*beta*height))
+
+    width_depth_new = int(width_depth * (1 + beta))
+    height_depth_new = int(height_depth * (1 + beta))
+
+    if width_depth_new + x_depth_new > depth.shape[1]:
+        width_depth_new = depth.shape[1] - x_depth_new
+
+    if height_depth_new + y_depth_new > depth.shape[0]:
+        height_depth_new = depth.shape[0] - y_depth_new
+
+
     # Get the relevant part of the depth map.
     depth = np.array(depth)
-    depth = depth[y_depth:y_depth+height_depth, x_depth:x_depth+width_depth]
+    depth_cropped = depth[y_depth:y_depth+height_depth, x_depth:x_depth+width_depth]
+
+    # Expand the depth map.
+    depth_expanded = depth[y_depth_new:y_depth_new+height_depth_new, x_depth_new:x_depth_new+width_depth_new]
 
     # Expand the image (for Color Contras Feature)
     image_expanded = expand_image(originial_img = image, x = x, y = y, width = width, height = height, beta =beta)
@@ -143,7 +162,7 @@ def extract_features(depth, image, dict_entry, beta=0.1):
     # Compute Features:
 
     ## 1) Mean Depth
-    mean_depth = np.mean(depth)
+    mean_depth = np.mean(depth_cropped)
 
     ## 2) Mean Saliency
     mean_saliency = np.mean(saliencyMap)
@@ -164,29 +183,59 @@ def extract_features(depth, image, dict_entry, beta=0.1):
     ## 5) Superpixel Straddeling
     #superpixel = superpixel_straddeling(image = image, width = width, height = height, x = x, y = y)
 
-    return mean_depth, mean_saliency, distance_histograms, edge_density
+    ## 6) SD Depth
+    sd_depth = np.std(depth_cropped)
+
+    ## 7) SD Saliency
+    sd_saliency = np.std(saliencyMap)
+
+    ## 8) Distance between cropped and expanded depth map
+    # Get the min and max values for histograms.
+
+    MAX = max(np.max(depth_cropped), np.max(depth_expanded))
+    MIN = min(np.min(depth_cropped), np.min(depth_expanded))
+
+    hist_cropped_depth = np.histogram(np.array(depth_cropped).flatten(), bins=300, range = (MIN, MAX))[0]
+    hist_expanded_depth = np.histogram(np.array(depth_expanded).flatten(), bins=300, range=(MIN, MAX))[0]
+
+    distance_depth_histograms = euc_distance(X = hist_cropped_depth, Y = hist_expanded_depth)
+
+    ## 9) Share of salient object larger than the twice the mean
+    saliencyMap_image = saliency_map_estimation(image = image)
+    mean_saliency_image = np.mean(saliencyMap_image)
+
+    binary_saliency = saliencyMap_image > 2 * mean_saliency_image
+    binary_saliency = np.sum(binary_saliency)/len(binary_saliency.flatten())
+
+
+
+    return mean_depth, mean_saliency, distance_histograms, edge_density, sd_depth, sd_saliency, \
+           distance_depth_histograms, binary_saliency
 
 
 
 def get_features(label_dictionary, depth, images, beta):
     image_names = list(label_dictionary.keys())
+    # Stupid hack that indicattes that the image loading does not work perfectly...
     all_features = []
 
     # Iterate over different images
     for index, name in enumerate(image_names):
 
-        # Each image has positive and negative examples/windows that cover more than theta percent of the annotation and not
+        print(100*(index/len(image_names)))
+
+        # Each image has positive and negative examples/windows that cover more than theta percent IoU
         for example in range(2):
             windows_example_list = len(label_dictionary[name][example])
 
             # Extract the features from each of these windows and save them as a list.
             for window in range(windows_example_list):
-                mean_depth, mean_saliency, color_distance, edge_density = extract_features(depth[index],
+                mean_depth, mean_saliency, color_contrast, edge_density, sd_depth, sd_saliency, distance_depth_histograms, binary_saliency = extract_features(depth[index],
                                                                                             images[index],
                                                                                             label_dictionary[name][example][window],
-                                                                                            beta = 0.1)
+                                                                                            beta = beta)
 
-                features = (mean_depth, mean_saliency, color_distance, edge_density)
+                features = (mean_depth, mean_saliency, color_contrast, edge_density, sd_depth, sd_saliency, distance_depth_histograms, binary_saliency)
 
                 all_features.append(features)
 
